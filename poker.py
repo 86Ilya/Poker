@@ -31,7 +31,14 @@
 from collections import Counter
 from itertools import combinations, product
 
-RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
+HIGH_CARDS = {
+        'T': '10',
+        'J': '11',
+        'Q': '12',
+        'K': '13',
+        'A': '14',
+        }
 
 
 def hand_rank(hand):
@@ -76,58 +83,13 @@ def compare_hand_rank(left, right):
     """Функция на вход принимает результат ф-ии hand_rank.
        Сравнивает ранги и возвращает старший."""
 
-    if left[0] > right[0]:
-        return left
-    elif left[0] < right[0]:
-        return right
-
-    # Тут мы окажемся, если ранги равны
-    rank = left[0]
-
-    if rank in [7, 6, 3, 1]:
-        if left[1] > right[1]:
-            return left
-        elif left[1] < right[1]:
-            return right
-        elif left[2] > right[2]:
-            return left
-        elif left[2] < right[2]:
-            return right
-        else:  # руки равны!
-            return None
-
-    elif rank == 2:
-        if max(left[1]) > max(right[1]):
-            return left
-        elif max(left[1]) < max(right[1]):
-            return right
-        if min(left[1]) > min(right[1]):
-            return left
-        elif min(left[1]) < min(right[1]):
-            return right
-        else:  # руки равны!
-            return None
-
-    elif rank in [0, 5]:
-        if max(left[1]) > max(right[1]):
-            return left
-        elif max(left[1]) < max(right[1]):
-            return right
-        else:  # руки равны!
-            return None
-    elif rank in [4, 8]:
-        if left[1] > right[1]:
-            return left
-        elif left[1] < right[1]:
-            return right
-        else:  # руки равны!
-            return None
+    return max([left, right])
 
 
 def convert_rank(rank):
     """Функция конвертирует ранг в его числовое представление"""
 
-    return int(rank.replace('T', '10').replace('J', '11').replace('Q', '12').replace('K', '13').replace('A', '14'))
+    return int(HIGH_CARDS.get(rank, rank))
 
 
 def card_ranks(hand):
@@ -136,7 +98,7 @@ def card_ranks(hand):
 
     ranks = []
     for card in hand:
-        ranks.append(convert_rank(card[0]))
+        ranks.append(convert_rank(card[:-1]))
     ranks.sort(reverse=True)
     return ranks
 
@@ -159,7 +121,7 @@ def straight(ranks):
         if ranks[i - 1] - 1 == ranks[i]:
             straight_count += 1
         else:
-            straight_count = 1
+            return False
 
     return straight_count >= 5
 
@@ -197,26 +159,20 @@ def two_pair(ranks):
 def best_hand(hand):
     """Из "руки" в 7 карт возвращает лучшую "руку" в 5 карт """
 
-    combinations_iter = combinations(hand, 5)
-    hand_top = combinations_iter.next()
-
-    for hand5 in combinations_iter:
-        cur_hand = compare_hands(hand_top, hand5)
-        # None будет, если значения рук одинаковое.
-        if cur_hand is not None and cur_hand is not hand_top:
-            hand_top = hand5
-    return hand_top
+    hands_combinations = (list(comb) for comb in combinations(hand, 5))
+    return max(hands_combinations, key=hand_rank)
 
 
 def get_joker_iter(joker):
     """Функция определяет цвет джокера и возвращает соответствующий ему набор дополнительных карт"""
 
+    card_values = [str(i) for i in range(1, 10)] + HIGH_CARDS.keys()
     if joker[1].lower() == 'b':
         # color = 'B'
-        additional_cards = product(RANKS, ['C', 'S'])
+        additional_cards = product(card_values, ['C', 'S'])
     else:
         # color = 'R'
-        additional_cards = product(RANKS, ['H', 'D'])
+        additional_cards = product(card_values, ['H', 'D'])
     return additional_cards
 
 
@@ -269,7 +225,7 @@ def parse_hand(hand_unparsed):
                 # Двух одинаковых карт в колоде не может быть
                 continue
             else:
-                hand += ["".join(item)]
+                hand.append(joker_card)
 
     return hand
 
