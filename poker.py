@@ -32,13 +32,7 @@ from collections import Counter
 from itertools import combinations, product
 
 
-HIGH_CARDS = {
-        'T': '10',
-        'J': '11',
-        'Q': '12',
-        'K': '13',
-        'A': '14',
-        }
+RANKS_DICT = { '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14 }
 
 
 def hand_rank(hand):
@@ -89,7 +83,7 @@ def compare_hand_rank(left, right):
 def convert_rank(rank):
     """Функция конвертирует ранг в его числовое представление"""
 
-    return int(HIGH_CARDS.get(rank, rank))
+    return RANKS_DICT[rank]
 
 
 def card_ranks(hand):
@@ -123,7 +117,7 @@ def straight(ranks):
         else:
             return False
 
-    return straight_count >= 5
+    return True
 
 
 def kind(n, ranks):
@@ -166,7 +160,7 @@ def best_hand(hand):
 def get_joker_iter(joker):
     """Функция определяет цвет джокера и возвращает соответствующий ему набор дополнительных карт"""
 
-    card_values = [str(i) for i in range(1, 10)] + HIGH_CARDS.keys()
+    card_values = RANKS_DICT.keys()
     if joker[1].lower() == 'b':
         # color = 'B'
         additional_cards = product(card_values, ['C', 'S'])
